@@ -1,0 +1,96 @@
+const express = require('express');
+const cron = require('node-cron');
+const AWS = require('aws-sdk');
+
+const app = express();
+const port = 3000;
+
+// Configure AWS SDK with your credentials
+AWS.config.update({
+  region: 'your_aws_region', // Replace with your AWS region
+  accessKeyId: 'your_aws_access_key',
+  secretAccessKey: 'your_aws_secret_key',
+});
+
+const dynamoDB = new AWS.DynamoDB.DocumentClient();
+
+// Function to fetch data from DynamoDB
+async function fetchDataFromDynamoDB() {
+  const params = {
+    TableName: 'due_customers_table', 
+  };
+
+  try {
+    const data = await dynamoDB.scan(params).promise();
+    return data.Items;
+  } catch (error) {
+    console.error('Error fetching data from DynamoDB:', error);
+    return [];
+  }
+}
+
+// Function to update DynamoDB with notification information
+async function updateNotificationStatus(customer) {
+  const params = {
+    TableName: 'due_customers_table', // Replace with your DynamoDB table name
+    Key: {
+      customerId: customer.customerId,
+    },
+    UpdateExpression: 'SET notificationSentAt = :currentTime ADD notificationCount :one',
+    ExpressionAttributeValues: {
+      ':currentTime': new Date(),
+      ':one': 1,
+    },
+  };
+
+  try {
+    await dynamoDB.update(params).promise();
+    console.log(`Notification status updated for ${customer.customer_name}`);
+  } catch (error) {
+    console.error('Error updating notification status in DynamoDB:', error);
+  }
+}
+
+// Function to send email notifications using Amazon SES
+function sendEmailSES(customer) {
+  const params = {
+    Destination: {
+      ToAddresses: [customer.customer_email],
+    },
+    Message: {
+      Body: {
+        Text: {
+          Data: `Dear ${customer.customer_name},\n\nThis is a reminder for your order (${customer.customer_order}) with a payment of ${customer.customer_payment}$ due on ${customer.customer_due_date}.\n\nThank you.`,
+        },
+      },
+      Subject: {
+        Data: 'Notificaion',
+      },
+    },
+    Source: 'oscorp_semiconductors@abinbev.com', // Replace with your verified SES email address
+  };
+
+  ses.sendEmail(params, (error, data) => {
+    if (error) {
+      console.error('Error sending email:', error);
+    } else {
+      console.log('Email sent:', data.MessageId);
+    }
+  });
+}
+
+// Schedule the job to run every Sunday at 9:00 AM
+cron.schedule('0 9 * * 0', async () => {
+  console.log('Fetching data from DynamoDB and sending weekly notifications...');
+
+  // Fetch data from DynamoDB
+  const dynamoDBData = await fetchDataFromDynamoDB();
+
+  // Use the fetched data for sending notifications
+  dynamoDBData.forEach((customer) => sendEmailSES(customer));
+});
+
+// Start the Express server
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
