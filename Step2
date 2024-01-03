@@ -1,3 +1,12 @@
+Step 2.) Notification system and sending data to the customer.
+
+The notification system will use Node.js and Express.js . The system will read from the NoSql database and then spin 
+up a express server which has a cron job set up for whatever frequency the organization wants to have. Let’s say the organization
+wants to send a notification to every customer in the database every week , the system’s cron will have every week as its job interval. 
+Every week the system will send a notification via AWS SES (Simple email service). The SDK for javascript is quite comprehensive and feature rich too. 
+The system will also update the database on which customer has been sent the notification at what time and how many times. I will give a rough
+pseduocode outline of the solution that I am thinking of.
+
 const express = require('express');
 const cron = require('node-cron');
 const AWS = require('aws-sdk');
