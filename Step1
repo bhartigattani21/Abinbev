@@ -1,0 +1,17 @@
+const customerData = [
+  {
+    customer_name: 'Customer 1',
+    customer_order: 'Order 123',
+    customer_payment: 100,
+    customer_due_date: '2024-01-10',
+    customer_email: 'customer1@example.com',
+  },
+  {
+    customer_name: 'Customer 2',
+    customer_order: 'Order 456',
+    customer_payment: 150,
+    customer_due_date: '2024-01-15',
+    customer_email: 'customer2@example.com',
+  },
+  // Add more customers as needed
+];
