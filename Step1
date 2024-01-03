@@ -1,3 +1,10 @@
+Step 1.) Collection of due payment data:
+
+Most ERP systems (even legacy ones) keep records of the transactions and the data about due payments or defaulters can be easily extracted from the ERP system. 
+This raw data is mostly in the form of an spreadsheet which needs to be cleaned. The data cleaning process include removing unnecessary fields of data such as 
+previous order data. The data can then be converted into a NoSql database and can be fed to 
+a Amazon DynamoDB database. I am planning to keep the cloud functions needed around AWS to maintain consistency and cohesiveness of the solution.
+
 const customerData = [
   {
     customer_name: 'Customer 1',
